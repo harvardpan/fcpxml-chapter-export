@@ -1,0 +1,17 @@
+{
+  "name": "fcpxml-chapter-export",
+  "version": "1.0.0",
+  "description": "Utility to export chapter marker timestamps for use in YouTube",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Harvard Pan",
+  "license": "MIT",
+  "dependencies": {
+    "fast-xml-parser": "^4.2.2",
+    "lodash.get": "^4.4.2",
+    "yargs": "^17.7.2"
+  }
+}
