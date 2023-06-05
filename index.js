@@ -70,7 +70,15 @@ const parser = new XMLParser(options);
 const json = parser.parse(xmlFile);
 const chapters = [ ]; // used to store the gathered data on chapter markers
 // Look through all the `asset-clip` and `ref-clip` elements for `chapter-marker` children
-const clips = [...get(json, `fcpxml.library.event.project.sequence.spine['asset-clip']`, []), ...get(json, `fcpxml.library.event.project.sequence.spine['ref-clip']`, []) ];
+let assetClips = get(json, `fcpxml.library.event.project.sequence.spine['asset-clip']`, []);
+if (assetClips && !Array.isArray(assetClips)) {
+  assetClips = [ assetClips ];
+}
+let refClips = get(json, `fcpxml.library.event.project.sequence.spine['ref-clip']`, []);
+if (refClips && !Array.isArray(refClips)) {
+  refClips = [ refClips ];
+}
+const clips = [ ...assetClips, ...refClips  ];
 clips.forEach(clip => {
   if (!clip.hasOwnProperty('chapter-marker')) {
     return;
