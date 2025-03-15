@@ -1,7 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import yargs from 'yargs/yargs';
 import { readFileSync } from 'fs';
-import get from 'lodash.get';
 
 // Specify the Help information using "yargs" library
 let argv = yargs(process.argv.slice(2))
@@ -15,7 +14,6 @@ let argv = yargs(process.argv.slice(2))
   .alias('h', 'help')
   .epilog('copyright 2023')
   .argv;
-
 
 /**
  * Calculate the number of seconds represented by the rational number.
@@ -62,49 +60,47 @@ function calculateChapterTime(chapter) {
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
+const chapters = [ ]; // used to store the gathered data on chapter markers
+
+// Recursive function to find all chapter-marker elements
+function findChapterMarkers(obj) {
+  if (typeof obj !== 'object' || obj === null) {
+    return;
+  }
+  if (obj.hasOwnProperty('chapter-marker')) {
+    if (Array.isArray(obj['chapter-marker'])) {
+      obj['chapter-marker'].forEach(chapterMarker => {
+        chapters.push({
+          name: chapterMarker['@_value'],
+          start: chapterMarker['@_start'],
+          assetOffset: obj['@_offset'],
+          assetStart: obj['@_start']
+        });
+      });
+    } else {
+      chapters.push({
+        name: obj['chapter-marker']['@_value'],
+        start: obj['chapter-marker']['@_start'],
+        assetOffset: obj['@_offset'],
+        assetStart: obj['@_start']
+      });
+    }
+  }
+  for (let key in obj) {
+    if (obj.hasOwnProperty(key) && typeof obj[key] === 'object') {
+      findChapterMarkers(obj[key]);
+    }
+  }
+}
+
 const xmlFile = readFileSync(argv.file);
 const options = {
   ignoreAttributes : false
 };
 const parser = new XMLParser(options);
 const json = parser.parse(xmlFile);
-const chapters = [ ]; // used to store the gathered data on chapter markers
-// Look through all the `asset-clip` and `ref-clip` elements for `chapter-marker` children
-let assetClips = get(json, `fcpxml.library.event.project.sequence.spine['asset-clip']`, []);
-if (assetClips && !Array.isArray(assetClips)) {
-  assetClips = [ assetClips ];
-}
-let refClips = get(json, `fcpxml.library.event.project.sequence.spine['ref-clip']`, []);
-if (refClips && !Array.isArray(refClips)) {
-  refClips = [ refClips ];
-}
-const clips = [ ...assetClips, ...refClips  ];
-clips.forEach(clip => {
-  if (!clip.hasOwnProperty('chapter-marker')) {
-    return;
-  }
-  if (Array.isArray(clip['chapter-marker'])) {
-    // Multiple chapter-markers in this asset-clip/ref-clip.
-    clip['chapter-marker'].forEach(chapterMarker => {
-      // console.log(`chapter-marker: name: ${chapterMarker['@_value']}, start ${chapterMarker['@_start']}, asset-offset: ${clip['@_offset']}, asset-start: ${clip['@_start']}`);
-      chapters.push({
-        name: chapterMarker['@_value'],
-        start: chapterMarker['@_start'],
-        assetOffset: clip['@_offset'],
-        assetStart: clip['@_start']
-      });
-    });
-  }
-  else {
-    // console.log(`chapter-marker: name: ${clip['chapter-marker']['@_value']}, start ${clip['chapter-marker']['@_start']}, asset-offset: ${clip['@_offset']}, asset-start: ${clip['@_start']}`);
-    chapters.push({
-      name: clip['chapter-marker']['@_value'],
-      start: clip['chapter-marker']['@_start'],
-      assetOffset: clip['@_offset'],
-      assetStart: clip['@_start']
-    });
-  }
-});
+
+findChapterMarkers(json, { });
 
 let outputTimes = [ ];
 chapters.forEach(chapter => {
