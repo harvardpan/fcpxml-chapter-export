@@ -26,8 +26,12 @@ function convertRationalNumber(rationalNumberString) {
     rationalNumberString = '';
   }
   let rationalParts = rationalNumberString.replace(/s$/, '').split('/');
-  if (!rationalParts || !Array.isArray(rationalParts) || rationalParts.length !== 2) {
+  if (!rationalParts || !Array.isArray(rationalParts)) {
     return 0;
+  }
+  // If rationalParts is just one number, then it is the number of seconds
+  if (rationalParts.length === 1) {
+    return parseInt(rationalParts[0]);
   }
   return parseInt(rationalParts[0]) / parseInt(rationalParts[1]);
 }
