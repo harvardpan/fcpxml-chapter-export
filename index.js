@@ -51,7 +51,7 @@ function calculateChapterTime(chapter) {
   // 2. Add this to the `assetOffset` to get the relative seconds from the beginning of video
   // 3. Convert the seconds to the HH:MM:SS format.
   let chapterStart = convertRationalNumber(chapter.start);
-  let assetStart = convertRationalNumber(chapter.assetStart);
+  let assetStart = convertRationalNumber(chapter.assetStart || '0s');
   let assetOffset = convertRationalNumber(chapter.assetOffset);
   if (chapterStart < assetStart) {
     // Chapter markers can't be before the actual asset. Not sure how this happens in Final Cut Pro.
